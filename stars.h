@@ -1,0 +1,2 @@
+void InitStars();
+void HandleStars();
