@@ -14,7 +14,7 @@ class viewport
         int windowHeight;
         int windowHeightHalf;
         int windowWidth;
-        int WindowWidthHalf;
+        int windowWidthHalf;
         int windowX;
         int windowY;
 
@@ -28,7 +28,7 @@ class viewport
         int padding;
         
         float scale;
-        float target_scale;
+        float targetScale;
 
         void updateViewport();
 
@@ -58,39 +58,34 @@ class spacegame
         bool isPlaying;
 
         float viewScale;
+        int drawnObjects;
 
         void init(const char* title, int xpos, int ypos, int height, int width, bool fullscreen);
 
         void handleEvents();
-        void update();
+        //void update();
         void setKeysOff();
         
         void renderClear();
         void renderPresent();
         void clean();
 
-        float getRandom(float min, float max);
-
-        int readHighScore();
-        void writeHighScore(int score);
-
-        void playSound(int sound);
+        //void playSound(int sound);
 
         viewport dataViewport;
         viewport mainViewport;
 
-
-
+        // This shouldn't be here
         TTF_Font * GameFont;
+
+        SDL_Texture *loadTexture(char *filename);
 
         void putText(viewport& vp, std::string saythis, int cent, int x, int y, Uint8 r, Uint8 g, Uint8 b);
         void drawCircle(viewport& vp, int x, int y, int radius, int r, int g, int b);
         void drawLine(viewport& vp, int x1, int y1, int x2, int y2, int r, int g, int b);
         void drawPoint(viewport& vp, int x, int y, int r, int g, int b);
-
-
-
-
+        void drawSprite(viewport& vp, SDL_Texture *texture, float x, float y, float angle);
+        //void drawSprite(viewport& vp, spaceobject& so);
 
  
     private:

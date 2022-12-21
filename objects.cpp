@@ -9,32 +9,39 @@ extern spacegame Game;
 
 void spaceobject::updatePosition()
 {
-    
     velA += impA;
     impA = 0;
 
     if(velA > maxTurnVel) velA = maxTurnVel;
+    if(velA < -maxTurnVel) velA = -maxTurnVel;
 
-    velX -= (sin(posA) * impFB);
-    velY += (cos(posA) * impFB);
+    posA += velA;
+
+    if(posA > 360){ posA -= 360; }
+    if(posA < 0){ posA += 360; }
+
+    velX += (sin(posA * RAD_TO_DEG) * impFB);
+    velY += (cos(posA * RAD_TO_DEG) * impFB);
     impFB = 0;
 
-    velX += (cos(posA) * impLR);
-    velY -= (sin(posA) * impLR);
+    velX += (cos(posA * RAD_TO_DEG) * impLR);
+    velY -= (sin(posA * RAD_TO_DEG) * impLR);
 
     impLR = 0;
 
-    if(velX > maxVel) velX = maxVel;
-    if(velX < -maxVel) velX = -maxVel;
-    if(velY > maxVel) velY = maxVel;
-    if(velY < -maxVel) velY = -maxVel;
+    // Too slow?
+    velTotal = SDL_sqrtf(velX * velX + velY * velY);
 
+    // Speed Limit
+    if(velTotal > maxVel)
+    {
+        velX = maxVel * sin(posA * RAD_TO_DEG);
+        velY = maxVel * cos(posA * RAD_TO_DEG);
+    }
+
+    // Finally, update position
     posX += velX;
     posY += velY;
-    posA += velA;
-
-    if(posA > TWOPIRAD){ posA -= TWOPIRAD; }
-    if(posA < 0){ posA +- TWOPIRAD; }
 
 }
 
@@ -50,27 +57,6 @@ void spaceobject::nudgeY(float ypos, float inc)
     // if(y > ypos){y -= inc;}
     // if(y < ypos){y += inc;}   
 }
-
-void spaceobject::rotateGraphics()
-{
-    
-    //Start with clear Pallete
-    graphicRotated.clear();
-    
-    for(const straightline&i : graphic)
-    {
-        float newx1 = ( i.x1 * cos(posA) * Game.mainViewport.scale - i.y1 * sin(posA) * Game.mainViewport.scale);
-        float newy1 = ( i.x1 * sin(posA) * Game.mainViewport.scale + i.y1 * cos(posA) * Game.mainViewport.scale);
-
-        float newx2 = ( i.x2 * cos(posA) * Game.mainViewport.scale - i.y2 * sin(posA) * Game.mainViewport.scale);
-        float newy2 = ( i.x2 * sin(posA) * Game.mainViewport.scale + i.y2 * cos(posA) * Game.mainViewport.scale);
-
-        graphicRotated.push_back(straightline(newx1,newy1,newx2,newy2,i.r,i.g,i.b));
-             
-    }
-
-}
-
 
 // void spaceobject::RandomizeVelX(float minvel, float maxvel)
 // {

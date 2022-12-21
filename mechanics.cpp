@@ -36,13 +36,13 @@ void ProcessInputs()
 
     if(Game.usrArrowLeft)
     {
-        Ship.impA += Ship.impAlevel;
+        Ship.impA -= Ship.impAlevel;
         Game.usrArrowLeft = false;
     }
 
     if(Game.usrArrowRight)
     {
-        Ship.impA -= Ship.impAlevel;
+        Ship.impA += Ship.impAlevel;
         Game.usrArrowRight = false;
     }
 
@@ -111,7 +111,12 @@ void ProcessInputs()
 
         // Game.mainViewport.windowX += 10;
 
-        Game.mainViewport.scale += .5;
+        //Game.mainViewport.scale += .5;
+
+        Ship.velX = 0;
+        Ship.velY = 0;
+        Ship.posA += 90;
+        
 
     }
 }
@@ -127,15 +132,6 @@ void HandlePlayerShip()
     // if(Ship.posX > MAXX_PLAYABLE_AREA){Ship.posX = MAXX_PLAYABLE_AREA;}
     // if(Ship.posY < MINY_PLAYABLE_AREA){Ship.posY = MINY_PLAYABLE_AREA;}
     // if(Ship.posY > MAXY_PLAYABLE_AREA){Ship.posY = MAXY_PLAYABLE_AREA;}
-}
-
-void CheckHighScore()
-{
-//     if(Player.score > Player.highScore)
-//     {
-//         Player.highScore = Player.score;
-//         Game.writeHighScore(Player.highScore);
-//     }
 }
 
 // void MakeExplosion(float x, float y, float vx, float vy, int col)

@@ -1,6 +1,8 @@
 #include <math.h>
 #include <vector>
 #include <string>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "draw.h"
 #include "engine.h"
 #include "defs.h"
@@ -15,8 +17,9 @@ using namespace std;
 extern spacegame Game;
 extern spaceplayer Player;
 extern spaceobject Ship;
+extern spaceobject Enemy[MAX_NUM_ENEMIES];
 extern spaceobject Star[NUMSTARS];
-extern vector<straightline> ufo;
+
 
 //extern spaceobject Explosion[MAXNUMEXPLOSIONS];
 //extern spaceobject Enemy[MAXNUMENEMIES];
@@ -25,6 +28,8 @@ extern vector<straightline> ufo;
 
 void Draw()
 {    
+    Game.drawnObjects = 0;
+    
     //Draw the Stars
     for(int i = 0; i < NUMSTARS; i++)
     {
@@ -33,15 +38,35 @@ void Draw()
 
     if(Player.inGame)
     {        
-        //Draw Ship     
-        DrawObject(Ship, Game.mainViewport);
-     
+
+        //Draw Enemy  
+        for(int i = 0; i < MAX_NUM_ENEMIES; i++)
+        {
+            if(inBounds(Game.mainViewport, Enemy[i]))
+            {
+                Game.drawSprite(Game.mainViewport,
+                                Enemy[i].texture,
+                                Enemy[i].posX,
+                                Enemy[i].posY,
+                                Enemy[i].posA);
+            }
+        }
+        //Draw Ship  
+        
+        
+
+        Game.drawSprite(Game.mainViewport,
+                        Ship.texture,
+                        Ship.posX,
+                        Ship.posY,
+                        Ship.posA);
+        
+
         //Draw In Game Text
         DrawGameText();
 
         DrawBorder(Game.dataViewport);
         DrawBorder(Game.mainViewport);
-        //DrawBorder(Game.testvp);
 
     }
 
@@ -60,54 +85,12 @@ void Draw()
 
 }
 
-void DrawObject(spaceobject& object, viewport& vp)
-{ 
-    object.rotateGraphics();
-
-    int x = object.posX - vp.focusX;
-    int y = vp.focusY - object.posY;
-
-    //Make sure it's near window or at least close
-    if (x < -VIEWPORT_BUFFER) return;
-    if (x > vp.windowWidth + VIEWPORT_BUFFER) return;
-    if (y < -VIEWPORT_BUFFER) return;
-    if (y > vp.windowHeight + VIEWPORT_BUFFER) return;
-
-
-    // Looks good, go ahead and draw
-    for(int i = 0; i < object.graphicRotated.size(); i++)
-    {
-        Game.drawLine(Game.mainViewport,    x + object.graphicRotated[i].x1,
-                                            y - object.graphicRotated[i].y1,
-                                            x + object.graphicRotated[i].x2,
-                                            y - object.graphicRotated[i].y2,
-                                            object.graphicRotated[i].r,
-                                            object.graphicRotated[i].g,
-                                            object.graphicRotated[i].b);
-    }
-
-
-
-
-    // int x = vp.focusX - object.posX;
-    // int y = vp.focusY - object.posY;
-
-    // //Make sure it's near window or at least close
-    // if(x < abs(vp.windowWidth + VIEWPORT_BUFFER ) && y < (vp.windowWidth + VIEWPORT_BUFFER ) )
-    // {
-    //     for(int i = 0; i < object.graphicRotated.size(); i++)
-    //     {
-    //         Game.drawLine(Game.mainViewport,    x + object.graphicRotated[i].x1,
-    //                                             y - object.graphicRotated[i].y1,
-    //                                             x + object.graphicRotated[i].x2,
-    //                                             y - object.graphicRotated[i].y2,
-    //                                             object.graphicRotated[i].r,
-    //                                             object.graphicRotated[i].g,
-    //                                             object.graphicRotated[i].b);
-    //     }
-
-    // }
-  
+bool inBounds(viewport &vp, spaceobject &so)
+{
+    if(abs(vp.focusX - so.posX) * vp.scale < vp.windowWidthHalf + VIEWPORT_PADDING &&
+       abs(vp.focusY - so.posY) * vp.scale < vp.windowHeightHalf + VIEWPORT_PADDING) return true;
+    
+    return false;
 }
 
 void DrawBorder(viewport& vp)
@@ -117,14 +100,7 @@ void DrawBorder(viewport& vp)
     Game.drawLine(vp, vp.windowWidth, vp.windowHeight, 0, vp.windowHeight, 120, 120, 120);
     Game.drawLine(vp, 0,vp.windowHeight, 0, 0, 120, 120, 120);
 
-    // Game.drawLine(vp, vp.windowX, vp.windowY, vp.windowX + vp.windowWidth, vp.windowY, 180, 180, 180);
-    // Game.drawLine(vp, vp.windowX + vp.windowWidth, vp.windowY, vp.windowX + vp.windowWidth, vp.windowY + vp.windowHeight, 180, 180, 180);
-    // Game.drawLine(vp, vp.windowX + vp.windowWidth, vp.windowY + vp.windowHeight, vp.windowX, vp.windowY + vp.windowHeight, 180, 180, 180);
-    // Game.drawLine(vp, vp.windowX, vp.windowY + vp.windowHeight, vp.windowX, vp.windowY, 180, 180, 180);
-
-
     return;
-
 }
 
 void DrawGameText()
@@ -152,97 +128,36 @@ void DrawGameText()
 
     Game.putText(Game.dataViewport,"ViewY: ", 0, 10, 145, 255, 0,0);
     Game.putText(Game.dataViewport,std::to_string(Game.mainViewport.focusY), 0, 70, 145, 255, 255, 255);   
+
+    Game.putText(Game.dataViewport,"Tot V: ", 0, 10, 165, 255, 0,0);
+    Game.putText(Game.dataViewport,std::to_string(Ship.velTotal), 0, 70, 165, 255, 255, 255);   
+
+    Game.putText(Game.dataViewport,"Scale: ", 0, 10, 185, 255, 0,0);
+    Game.putText(Game.dataViewport,std::to_string(Game.mainViewport.scale), 0, 70, 185, 255, 255, 255); 
+
+    Game.putText(Game.dataViewport,"D_Obj: ", 0, 10, 205, 255, 0,0);
+    Game.putText(Game.dataViewport,std::to_string(Game.drawnObjects), 0, 70, 205, 255, 255, 255); 
     
-    //Game.putText("Space Battle!", 1, 248, 5, 255, 255, 0);
 }
 
-
-/// @brief Load Vector Graphics into Object
-void LoadGraphics()
+void UpdateViewport()
 {
-        Ship.graphic = {
-        //Body
-        {0,8,-7,-10,122,122,122},
-        {-7,-10,-4,-9,122,122,122},
-        {-4,-9,-1,-5,122,122,122},
-        {-1,-5,1,-5, 122,122,122},
-        {1,-5,4,-9,122,122,122},
-        {4,-9,7,-10,122,122,122},
-        {7,-10,0,8,122,122,122},
+    // Scale
+    Game.mainViewport.targetScale = (MAIN_VIEWPORT_MAX_SCALE) - (Ship.velTotal * .1);
 
-        //Window
-        {-1,1,-3,-4,0,0,255},
-        {-3,-4,-1,-3,0,0,255},
-        {-1,-3,1,-3,0,0,255},
-        {1,-3,3,-4,0,0,255},
-        {3,-4,1,1,0,0,255},
+    if(Game.mainViewport.scale < Game.mainViewport.targetScale) Game.mainViewport.scale += .01;
+    if(Game.mainViewport.scale > Game.mainViewport.targetScale) Game.mainViewport.scale -= .006 ;
+    
+    if(Game.mainViewport.scale > MAIN_VIEWPORT_MAX_SCALE) Game.mainViewport.scale = MAIN_VIEWPORT_MAX_SCALE;
+    if(Game.mainViewport.scale < MAIN_VIEWPORT_MIN_SCALE) Game.mainViewport.scale = MAIN_VIEWPORT_MIN_SCALE;
 
-        //Thruster
-        {-1,-6,-2,-8,255,255,0},
-        {-2,-8,-2,-10,255,255,0},
-        {-2,-10,2,-10,255,255,0},
-        {2,-10,2,-8,255,255,0},
-        {2,-8,1,-6,255,255,0}
+    // Position / Focus
+    Game.mainViewport.targetX = Ship.posX;
+    Game.mainViewport.targetY = Ship.posY;
 
-    };
+    //TEMPORARY
+    Game.mainViewport.focusX = Game.mainViewport.targetX;
+    Game.mainViewport.focusY = Game.mainViewport.targetY;
 }
 
 
-
-
-// Game.putText("Health:", 0, 10, 5, 255, 0, 255);
-// Game.putText(std::to_string(Player.health), 0, 90, 5, 255, 255, 255);
-
-// Game.putText("Ammo: ",0, 515, 5, 0, 255,0);
-// Game.putText(std::to_string(Player.ammo), 0, 595, 5, 255, 255, 255);  
-
-// Game.putText("Enemies: ",0, 490, 440, 255, 0,0);
-// Game.putText(std::to_string(Player.numEnemyShips), 0, 595, 440, 255, 255, 255);
-
-// Game.putText("Score: ", 0, 10, 440, 0, 0,255);
-// Game.putText(std::to_string(Player.score), 0, 90, 440, 255, 255, 255);    
-
-
-
-// void DrawLaser(int x, int y, int col)
-// {
-//     if(col==1) {Game.drawLine(x,y,x,y-10,LASERCOLOR_R,LASERCOLOR_G,LASERCOLOR_B);}
-//     if(col==2) {Game.drawLine(x,y,x,y-10,LASERCOLOR_ENEMY_R,LASERCOLOR_ENEMY_G,LASERCOLOR_ENEMY_B);}
-// }
-
-// void DrawExplosion(int x, int y, int rad, int col)
-// {
-//     for(int i=0; i < EXPLOSIONPARTICLES; i++)
-//     {
-//         Game.drawPoint(x + Game.getRandom(rad * -1, rad), y + Game.getRandom(rad * -1, rad), 255, 255, 0);
-//         //Point(x + Rando(EXPLOSIONSIZE * -1, EXPLOSIONSIZE), y + Rando(EXPLOSIONSIZE * -1, EXPLOSIONSIZE), 255, 255, 0);
-
-//     }
-//     if(col==1) Game.drawCircle(x,y,rad,255,0,0);
-//     if(col==2) Game.drawCircle(x,y,rad,0,255,0);
-// }
-
-
-//Draw Enemies
-// for(int i = 0; i < Player.numEnemyShips; i++)
-// {
-//     DrawEnemy(Enemy[i].posX, Enemy[i].y, 1);
-// }
-
-//Draw the lasers
-// for(int i = 0; i < MAXNUMLASERS; i++)
-// {
-//     if(Laser[i].active)
-//     {
-//         DrawLaser(Laser[i].x,Laser[i].y, Laser[i].color);
-//     }
-// }
-
-//Draw Explosions
-// for(int i = 0; i < MAXNUMEXPLOSIONS; i++)
-// {
-//     if(Explosion[i].active)
-//     {
-//         DrawExplosion(Explosion[i].x,Explosion[i].y, Explosion[i].stage, Explosion[i].color);
-//     }
-// }

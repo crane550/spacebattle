@@ -1,7 +1,7 @@
 void KillEnemy(int);
 void ProcessInputs();
 void CheckEndOfGame();
-void CheckHighScore();
+
 void HandleShips();
 void InitEnemies();
 void CheckEnemyNumbers();

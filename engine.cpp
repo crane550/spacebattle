@@ -1,9 +1,11 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 //#include <SDL2/SDL_rwops.h>
 //#include <SDL2/SDL_mixer.h>
 #include <iostream>
 #include <math.h>
+#include <string>
 
 #include "engine.h"
 #include "defs.h"
@@ -94,18 +96,7 @@ void spacegame::setKeysOff()
 //////////////////////////////////////////////////////////
 ///////////////////////GRAPHICS///////////////////////////
 //////////////////////////////////////////////////////////
-void viewport::updateViewport()
-{
-    float differenceX = targetX - (focusX + (windowWidth / 2));
-    //float differenceY = focusY - targetY + (windowHeight / 2);
-    float differenceY = targetY - (focusY - (windowHeight / 2));
-        
-    if(abs(differenceX) > padding) focusX += (differenceX) * shiftSpeed;
-    if(abs(differenceY) > padding) focusY += (differenceY) * shiftSpeed;
 
-    focusX += (differenceX) * shiftSpeed;
-    focusY += (differenceY) * shiftSpeed;
-}
 // Graphics Functions
 void spacegame::renderClear()
 {
@@ -118,6 +109,7 @@ void spacegame::renderPresent()
     SDL_RenderPresent(renderer);
 }
 
+// Draws a Circle
 void spacegame::drawCircle(viewport& vp, int x, int y, int radius, int r, int g, int b)
 {
     SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
@@ -155,6 +147,7 @@ void spacegame::drawCircle(viewport& vp, int x, int y, int radius, int r, int g,
     }
 }
 
+// Draws a Line
 void spacegame::drawLine(viewport& vp, int x1, int y1, int x2, int y2, int r, int g, int b)
 {
     SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
@@ -164,14 +157,15 @@ void spacegame::drawLine(viewport& vp, int x1, int y1, int x2, int y2, int r, in
                         x2 + vp.windowX,
                         y2 + vp.windowY);
 }
-//Sets color and places a pixel
+
+// Draws a Point
 void spacegame::drawPoint(viewport& vp, int x, int y, int r, int g, int b)
 {
     SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
     SDL_RenderDrawPoint(renderer, x + vp.windowX, y + vp.windowY);
 }
-//Rotates Graphic to Match Angle
-//Draw Text to the Screen
+
+// Draws Text
 void spacegame::putText(viewport& vp, std::string saythis, int cent, int x, int y, Uint8 r, Uint8 g, Uint8 b)
 {
     SDL_Color color = {r, g, b };
@@ -195,6 +189,29 @@ void spacegame::putText(viewport& vp, std::string saythis, int cent, int x, int 
     
     SDL_DestroyTexture(textMessage);
     SDL_FreeSurface(surfaceMessage);
+}
+
+// Draws a Sprite
+void spacegame::drawSprite(viewport& vp, SDL_Texture *texture, float x, float y, float angle)
+{
+    x -= vp.focusX;
+    y -= vp.focusY;
+
+    x *= vp.scale;
+    y *= -vp.scale;
+
+    SDL_Rect dest;
+    SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h);
+
+    dest.w *= vp.scale;
+    dest.h *= vp.scale;
+
+    dest.x = x - (dest.w * 0.5) + vp.windowX + vp.windowWidthHalf;
+    dest.y = y - (dest.w * 0.5) + vp.windowY + vp.windowHeightHalf;
+
+    SDL_RenderCopyEx(renderer, texture, NULL, &dest, angle, NULL, SDL_FLIP_NONE);
+
+    drawnObjects++;
 }
 
 // Init and Shutdown
@@ -230,26 +247,6 @@ void spacegame::init(const char *title, int xpos, int ypos, int width, int heigh
         std::cout << "TTF Initialized" << std::endl;
     }
 
-    //Initialize SDL_mixer
-    //if( Mix_OpenAudio( 48000, AUDIO_S16SYS, 2, 4096)==0)
-    //if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 4096)==0)
-    // {
-    //     std::cout << "Mixer Initialized" << std::endl;   
-    // }
-
-    // sndLaser = Mix_LoadWAV("sounds/FriendlyLaser.wav");
-    // sndEnemyLaser = Mix_LoadWAV("sounds/EnemyLaser.wav");
-    // sndBeingDestroyed = Mix_LoadWAV("sounds/BeingDestroyed.wav");
-    // sndPowerUp = Mix_LoadWAV("sounds/Powerup.wav");
-    // sndGameStart = Mix_LoadWAV("sounds/GameStart.wav");
-    // sndEnemiesReleased = Mix_LoadWAV("sounds/EnemiesReleased.wav");
-    // sndTakeDamage = Mix_LoadWAV("sounds/TakeDamage.wav");
-    // sndKillEnemy = Mix_LoadWAV("sounds/KillEnemy.wav");
-    // sndKillHealth = Mix_LoadWAV("sounds/KillHealth.wav");
-
-    // if(sndLaser==NULL) std::cout << "Friendly Not OK" << std::endl;   
-    // if(sndEnemyLaser==NULL) std::cout << "Enemy Not OK" << std::endl;   
-
     GameFont = TTF_OpenFont("fonts/DOS.ttf", DEFFONTSIZE);
     if(GameFont)
     {
@@ -260,23 +257,23 @@ void spacegame::init(const char *title, int xpos, int ypos, int width, int heigh
         std::cout << "Error Loading Font " << SDL_GetError() << std::endl;
     }
 
+    if(IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
+    {
+        std::cout << "SDL_Image Initialized" << std::endl;
+    }
+
+    //Initialize SDL_mixer
+    //if( Mix_OpenAudio( 48000, AUDIO_S16SYS, 2, 4096)==0)
+    //if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 4096)==0)
+    // {
+    //     std::cout << "Mixer Initialized" << std::endl;   
+    // }
+
 }
 
 void spacegame::clean()
 {
     TTF_CloseFont(GameFont);
-    
-    //Close Sounds
-    // Mix_FreeChunk(sndLaser);
-    // Mix_FreeChunk(sndEnemyLaser);
-    // Mix_FreeChunk(sndBeingDestroyed);
-    // Mix_FreeChunk(sndPowerUp);
-    // Mix_FreeChunk(sndGameStart);
-    // Mix_FreeChunk(sndEnemiesReleased);
-    // Mix_FreeChunk(sndTakeDamage);
-    // Mix_FreeChunk(sndKillEnemy);
-    // Mix_FreeChunk(sndKillHealth);
-    //Mix_CloseAudio();
 
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
@@ -285,84 +282,13 @@ void spacegame::clean()
     std::cout << "SDL cleaned\n" << std::endl;
 }
 
-float spacegame::getRandom(float min, float max)
+SDL_Texture *spacegame::loadTexture(char *filename)
 {
-    float randomnum = ((float) rand()) / (float) RAND_MAX;
-    float diff = max - min;
-    float r = randomnum * diff;
-    return min + r;
+	SDL_Texture *texture;
+
+	std::cout << "Loading " << filename << std::endl;
+
+	texture = IMG_LoadTexture(renderer, filename);
+
+	return texture;
 }
-
-void spacegame::playSound(int sound)
-{
-//     switch(sound)
-//     {
-//         case 1:
-//             //Mix_PlayChannel( -1, sndLaser, 0 );
-//             break;
-//         case 2:
-//             //Mix_PlayChannel( -1, sndEnemyLaser, 0 );
-//             break;
-//         case 3:
-//             //Mix_PlayChannel( -1, sndGameStart, 0 );
-//             break;
-//         case 4:
-//             //Mix_PlayChannel(-1, sndBeingDestroyed, 0);
-//             break;
-//         case 5:
-//             //Mix_PlayChannel(-1, sndPowerUp, 0);
-//             break;
-//         case 6:
-//             //Mix_PlayChannel(-1, sndEnemiesReleased, 0);
-//             break;
-//         case 7:
-//             //Mix_PlayChannel(-1, sndTakeDamage, 0);
-//             break;
-//         case 8:
-//             //Mix_PlayChannel(-1, sndKillEnemy, 0);
-//             break;
-//         case 9:
-//             //Mix_PlayChannel(-1, sndKillHealth, 0);
-//             break;            
-//     }
-}
-
-void spacegame::writeHighScore(int score)
-{
-    // SDL_RWops *scorefile = SDL_RWFromFile("highscore.dat","w");
-
-    // //score = 8675309;
-
-    // char charscore[8];
-
-    // sprintf(charscore, "%d", score);
-
-    // SDL_RWwrite(scorefile, charscore, 1, 7);
-
-    // SDL_RWclose(scorefile);
-
-}
-
-// int spacegame::readHighScore()
-// {
-//     //std::cout << "Opening high score file...";
-//     // SDL_RWops *scorefile = SDL_RWFromFile("highscore.dat","rb");
-    
-//     // char readscore[8];
-
-//     // SDL_RWread(scorefile,readscore,16,256/16);
-//     // SDL_RWclose(scorefile);
-
-//     //int score;
-//     // sscanf(readscore, "%d", &score);
-
-//     // std::cout << readscore << std::endl;
-
-//     //return score;
-// }
-
-// What is this??
-// void spacegame::update()
-// {
-//     cnt++;
-// }

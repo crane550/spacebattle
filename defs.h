@@ -12,10 +12,16 @@
 // #define MAIN_VIEWPORT_WIDTH 261
 // #define MAIN_VIEWPORT_HEIGHT 758
 
+#define MAX_FILE_LEN 24
+
+#define MAX_NUM_ENEMIES 40
+
 #define MAIN_VIEWPORT_X 5
 #define MAIN_VIEWPORT_Y 5
 #define MAIN_VIEWPORT_WIDTH 758
 #define MAIN_VIEWPORT_HEIGHT 758
+#define MAIN_VIEWPORT_MAX_SCALE 2
+#define MAIN_VIEWPORT_MIN_SCALE 0.75f
 
 #define DATA_VIEWPORT_X 768
 #define DATA_VIEWPORT_Y 5
@@ -37,19 +43,19 @@
 
 //#define MINX_PLAYABLE_AREA 10
 //#define SHIP_VEL_INCREMENT_F 1.8
-#define SHIP_VEL_DECAY 0.995f
+#define SHIP_VEL_DECAY 0.997f
 #define SHIP_TURN_DECAY 0.75f
 #define SHIP_IMPULSE_F 1.8f
 #define SHIP_IMPULSE_B 0.8f
 #define SHIP_IMPULSE_L 0.75f
 #define SHIP_IMPULSE_R 0.75f
-#define SHIP_IMPULSE_A 0.12f
+#define SHIP_IMPULSE_A 3
 
-#define SHIP_MAX_VEL 30
-#define SHIP_MAX_TURN_VEL .15f
+#define SHIP_MAX_VEL 10
+#define SHIP_MAX_TURN_VEL 4
 
-#define SHIP_START_X 450;
-#define SHIP_START_Y -300;
+#define SHIP_START_X 0;
+#define SHIP_START_Y 0;
 
 
 #define MINVELX -2
@@ -91,6 +97,7 @@
 
 #define frameDelay 16.6667
 #define DEFFONTSIZE 16
-#define TWOPIRAD 6.283185
+#define RAD_TO_DEG 0.017453
+#define PI 3.14159
 
 

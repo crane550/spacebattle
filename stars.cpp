@@ -4,6 +4,7 @@
 #include "defs.h"
 #include "objects.h"
 #include "engine.h"
+#include "util.h"
 
 extern spaceobject Star[NUMSTARS];
 extern spacegame Game;
@@ -15,9 +16,9 @@ void InitStars()
 {
     for(int i = 0; i < NUMSTARS; i++)
     {
-        Star[i].posX = Game.getRandom(0, WINDOW_WIDTH);
-        Star[i].posY = Game.getRandom(0, WINDOW_HEIGHT);
-        Star[i].velY = Game.getRandom(MINSTARVEL, MAXSTARVEL);
+        Star[i].posX = getRandom(0, WINDOW_WIDTH);
+        Star[i].posY = getRandom(0, WINDOW_HEIGHT);
+        Star[i].velY = getRandom(MINSTARVEL, MAXSTARVEL);
     }
 }
 
@@ -44,6 +45,8 @@ void HandleStars()
             if(Star[i].posX < 0) {Star[i].posX = WINDOW_WIDTH;}
             if(Star[i].posY > WINDOW_HEIGHT) {Star[i].posY = 0;}
             if(Star[i].posY < 0) {Star[i].posY = WINDOW_HEIGHT;}
+
+        
         }
     }
 
