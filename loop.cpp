@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+//#include <vector>
 
 #include "loop.h"
 #include "engine.h"
@@ -8,33 +9,26 @@
 #include "mechanics.h"
 #include "stars.h"
 #include "util.h"
+#include "inputs.h"
+
+using namespace std;
 
 Uint32 frameStart;
 Uint32 frameTime;
-
-extern spacegame Game;
 extern Uint32 frames;
 
+extern spacegame Game;
+
 spaceplayer Player;
-spaceobject Star[NUMSTARS];
 spaceobject Ship;
+spaceobject Star[NUM_STARS];
 spaceobject Enemy[MAX_NUM_ENEMIES];
-
-
-//spaceobject Enemy[MAXNUMENEMIES];
-//spaceobject HealthAmmo[MAXNUMHEALTHAMMO];
-//spaceobject Laser[MAXNUMLASERS];
-//spaceobject Explosion[MAXNUMEXPLOSIONS];
+spaceobject Laser[MAX_NUM_LASERS];
+spaceobject Explosion[MAX_NUM_EXPLOSIONS];
 
 void GameLoop()
 {
-    // Loading Screen here?
-    
-    Game.isPlaying = true;
-    Player.inMenu = true;
-    Player.inGame = false;
-    Game.setKeysOff();
-    InitStars();
+    Init();
     
     while(Game.isPlaying)
     {
@@ -50,21 +44,13 @@ void GameLoop()
 
         if(Player.inGame)
         {
-            
-            HandlePlayerShip();
+            UpdatePlayerShip();
+            UpdateEnemies();
+            UpdateLasers();
+            UpdateExplosions();
 
             UpdateViewport();
-
-            // Enemy.posX = Ship.posX - 50;
-            // Enemy.posY = Ship.posY - 50;
-            // Enemy.posA = -Ship.posA + 90;
-
-            //HandleLasers();
-            //HandleHealthAmmo();
-            //HandleExplosions();
-
-            //CheckEndOfGame();
-            //CheckEnemyNumbers();
+            
         }
 
         if(Player.inMenu) MenuLoop();
@@ -76,7 +62,8 @@ void GameLoop()
         // Limit to 60 frameas per second
         frames++;
         frameTime = SDL_GetTicks() - frameStart;
-        if(frameDelay > frameTime){SDL_Delay(frameDelay - frameTime);}else{std::cout << "Frames Lost" << std::endl;}
+        if(frameDelay > frameTime){SDL_Delay(frameDelay - frameTime);}
+        else{std::cout << "Frames Lost" << std::endl;}
     }
 
     Player.inMenu = true;
@@ -91,9 +78,8 @@ void MenuLoop()
         Game.usrKeyN=false;
         Player.inGame = true;
         Player.inMenu = false;
+        std::cout << "N PRESSED" << std::endl;
         InitNewGame();
-        //InitEnemies();
-        //Game.playSound(3);
     }
 
     if(Game.usrKeyX)
@@ -103,21 +89,38 @@ void MenuLoop()
     }
 }
 
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+void Init()
+{
+    // Loading Screen here?
+    Game.loadFont(0, "fonts/dos.ttf", DEF_FONT_SIZE);
+    Game.loadFont(1, "fonts/squared.ttf", 12);
+    InitViewports();
+    Game.isPlaying = true;
+    Player.inMenu = true;
+    Player.inGame = false;
+    Game.setKeysOff();
+    InitStars();
+}
+
 void InitNewGame()
 {
-    std::cout << "New Game Started" << std::endl;    
+    std::cout << "New Game Started" << std::endl;   
 
-    Game.viewScale = 2;
+    Player.fireLaser = false; 
 
-    Ship.velX = 0;
-    Ship.velY = 0;
-    Ship.velA = 0;
-    Ship.impFB = 0;
-    Ship.impLR = 0;
-    Ship.impA = 0;
+    Game.mainViewport.scale = 2;
+    Game.mainViewport.userScale = 0;
+    Game.setKeysOff();
+
+
+    Ship.clear();
     Ship.posX = SHIP_START_X;
     Ship.posY = SHIP_START_Y
-    Ship.posA = 0;
     Ship.impFlevel = SHIP_IMPULSE_F;
     Ship.impBlevel = SHIP_IMPULSE_B;
     Ship.impAlevel = SHIP_IMPULSE_A;
@@ -129,18 +132,17 @@ void InitNewGame()
     Ship.maxTurnVel = SHIP_MAX_TURN_VEL;
 
     Ship.texture = Game.loadTexture("graphics/ship1.png");
-
+    SDL_QueryTexture(Ship.texture, NULL, NULL, &Ship.width, &Ship.height);
+    
+    //for(spaceobject i : Enemy)
     for(int i = 0; i < MAX_NUM_ENEMIES; i++)
     {
-        Enemy[i].posX = getRandom(-1000, 1000);
-        Enemy[i].posY = getRandom(-1000, 1000);
+        Enemy[i].clear();
+        Enemy[i].active = true;
+        Enemy[i].posX = getRandom(-500, 500);
+        Enemy[i].posY = getRandom(-500, 500);
         Enemy[i].posA = getRandom(0,359);
-        Enemy[i].velX = 0;
-        Enemy[i].velY = 0;
-        Enemy[i].velA = 0;
-        Enemy[i].impFB = 0;
-        Enemy[i].impLR = 0;
-        Enemy[i].impA = 0;
+        Enemy[i].velX = getRandom(-1,3);
         Enemy[i].impFlevel = SHIP_IMPULSE_F;
         Enemy[i].impBlevel = SHIP_IMPULSE_B;
         Enemy[i].impAlevel = SHIP_IMPULSE_A;
@@ -150,10 +152,30 @@ void InitNewGame()
         Enemy[i].decXY = SHIP_VEL_DECAY;
         Enemy[i].maxVel = SHIP_MAX_VEL;
         Enemy[i].maxTurnVel = SHIP_MAX_TURN_VEL;
+        strcpy(Enemy[i].callsign, "TANGO");
+
+        std::cout << Enemy[i].callsign << std::endl;
 
         Enemy[i].texture = Game.loadTexture("graphics/ship2.png");
+        SDL_QueryTexture(Enemy[i].texture, NULL, NULL, &Enemy[i].width, &Enemy[i].height);
     }
 
+    for(int l = 0; l < MAX_NUM_LASERS; l++)
+    {
+        Laser[l].clear();
+    }
+
+    for(int e = 0; e < MAX_NUM_EXPLOSIONS; e++)
+    {
+        Explosion[e].clear();
+        Explosion[e].texture = Game.loadTexture("graphics/explosion1.png");
+    }
+
+    Game.setKeysOff();
+}
+
+void InitViewports()
+{
     Game.mainViewport.scale = 1;
     Game.mainViewport.windowHeight = MAIN_VIEWPORT_HEIGHT;
     Game.mainViewport.windowWidth = MAIN_VIEWPORT_WIDTH;
@@ -181,34 +203,4 @@ void InitNewGame()
     // Game.testvp.windowY = 20;
     // Game.testvp.padding = 2;
     // Game.testvp.shiftSpeed = 2;
-
-    //Player.health = 100;
-    //Player.score = 0;
-    //Player.ammo = 100;
-
-    //Player.numEnemyShips = 10;
-    //Player.numEnemyShips = 400;
-    
-    //Player.shipToAdd = 15;
-    //Player.stillPlaying = true;
-    //Player.fireLaser = false;
-    //Player.endOfGameStage = 0;
-
-    // for(int i=0; i < MAXNUMEXPLOSIONS; i++)
-    // {
-    //     Explosion[i].active = false;
-    // }
-
-    // for(int i=0; i < MAXNUMLASERS; i++)
-    // {
-    //     Laser[i].active = false;
-    // }
-
-    // for(int i=0; i < MAXNUMHEALTHAMMO; i++)
-    // {
-    //     HealthAmmo[i].active = false;
-    // }
-
-    Game.setKeysOff();
-
 }

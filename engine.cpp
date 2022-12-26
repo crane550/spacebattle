@@ -8,7 +8,7 @@
 #include <string>
 
 #include "engine.h"
-#include "defs.h"
+//#include "defs.h"
 
 using namespace std;
 
@@ -31,6 +31,7 @@ void spacegame::handleEvents()
 				break;
 
             case SDL_KEYDOWN:
+                if(event.key.repeat) break;
                 switch(event.key.keysym.scancode)
                 {
                     case SDL_SCANCODE_UP:
@@ -60,6 +61,9 @@ void spacegame::handleEvents()
                     case SDL_SCANCODE_P:
                         usrKeyP = true;
                         break;
+                    case SDL_SCANCODE_O:
+                        usrKeyO = true;
+                        break;
                     case SDL_SCANCODE_PAGEUP:
                         usrKeyPageUp = true;
                         break;
@@ -68,6 +72,33 @@ void spacegame::handleEvents()
                         break;
                     case SDL_SCANCODE_ESCAPE:
                         usrKeyEscape = true;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            case SDL_KEYUP:
+                if(event.key.repeat) break;
+                switch(event.key.keysym.scancode)
+                {
+                    case SDL_SCANCODE_UP:
+                        usrArrowUp = false;
+                        break;
+                    case SDL_SCANCODE_DOWN:
+                        usrArrowDown = false;
+                        break;
+                    case SDL_SCANCODE_RIGHT:
+                        usrArrowRight = false;
+                        break;
+                    case SDL_SCANCODE_LEFT:
+                        usrArrowLeft = false;
+                        break;
+                    case SDL_SCANCODE_PAGEUP:
+                        usrKeyPageUp = false;
+                        break;
+                    case SDL_SCANCODE_PAGEDOWN:
+                        usrKeyPageDown = false;
                         break;
                     default:
                         break;
@@ -85,8 +116,10 @@ void spacegame::setKeysOff()
     usrArrowDown = false;
     usrArrowLeft = false;
     usrArrowRight = false;
+    usrKeyC = false;
     usrKeyN = false;
     usrKeyX = false;
+    usrKeyO = false;
     usrKeySpacebar = false;
     usrKeyPageDown = false;
     usrKeyPageUp = false;
@@ -158,6 +191,21 @@ void spacegame::drawLine(viewport& vp, int x1, int y1, int x2, int y2, int r, in
                         y2 + vp.windowY);
 }
 
+void spacegame::drawLineS(viewport& vp, int x1, int y1, int x2, int y2, int r, int g, int b)
+{
+    x1 -= vp.focusX;
+    x2 -= vp.focusX;
+    y1 -= vp.focusY;
+    y2 -= vp.focusY;
+    
+    SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine( renderer,
+                        (x1 * vp.scale) + vp.windowX + vp.windowWidthHalf,
+                        (y1 * -vp.scale) + vp.windowY + vp.windowHeightHalf,
+                        (x2 * vp.scale) + vp.windowX + vp.windowWidthHalf,
+                        (y2 * -vp.scale) + vp.windowY + vp.windowHeightHalf);
+}
+
 // Draws a Point
 void spacegame::drawPoint(viewport& vp, int x, int y, int r, int g, int b)
 {
@@ -166,13 +214,11 @@ void spacegame::drawPoint(viewport& vp, int x, int y, int r, int g, int b)
 }
 
 // Draws Text
-void spacegame::putText(viewport& vp, std::string saythis, int cent, int x, int y, Uint8 r, Uint8 g, Uint8 b)
+void spacegame::putText(int font, viewport& vp, std::string saythis, int cent, int x, int y, Uint8 r, Uint8 g, Uint8 b)
 {
     SDL_Color color = {r, g, b };
 
-    // as TTF_RenderText_Solid could only be used on SDL_Surface then you have to create the surface first
-    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(GameFont, saythis.c_str(), color);
-    //now you can convert it into a texture
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(GameFont[font], saythis.c_str(), color);
     SDL_Texture* textMessage = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
     
     SDL_Rect rect;
@@ -181,10 +227,30 @@ void spacegame::putText(viewport& vp, std::string saythis, int cent, int x, int 
     rect.w = surfaceMessage->w;
     rect.h = surfaceMessage->h;
 
-    if(cent){ rect.x = (WINDOW_WIDTH - rect.w) / 2; }
+    if(cent){ rect.x = (vp.windowWidth - rect.w) / 2; }
+
+    SDL_RenderCopy(renderer, textMessage, NULL, &rect); 
     
-    //you put the renderer's name first, the Message, the crop size(you can ignore this
-    //if you don't want to dabble with cropping), and the rect which is the size and coordinate of your texture 
+    SDL_DestroyTexture(textMessage);
+    SDL_FreeSurface(surfaceMessage);
+}
+
+void spacegame::putTextS(int font, viewport& vp, std::string saythis, int x, int y, Uint8 r, Uint8 g, Uint8 b)
+{
+    x -= vp.focusX;
+    y -= vp.focusY;
+    
+    SDL_Color color = {r, g, b };
+
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(GameFont[font], saythis.c_str(), color);
+    SDL_Texture* textMessage = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    
+    SDL_Rect rect;
+    rect.x = (x * vp.scale) + vp.windowX + vp.windowWidthHalf;
+    rect.y = (y * -vp.scale) + vp.windowY + vp.windowHeightHalf;
+    rect.w = surfaceMessage->w; // * vp.scale;
+    rect.h = surfaceMessage->h; // * vp.scale;
+
     SDL_RenderCopy(renderer, textMessage, NULL, &rect); 
     
     SDL_DestroyTexture(textMessage);
@@ -247,16 +313,6 @@ void spacegame::init(const char *title, int xpos, int ypos, int width, int heigh
         std::cout << "TTF Initialized" << std::endl;
     }
 
-    GameFont = TTF_OpenFont("fonts/DOS.ttf", DEFFONTSIZE);
-    if(GameFont)
-    {
-        std::cout << "Loading font: " << GameFont << std::endl;
-    }
-    else
-    {
-        std::cout << "Error Loading Font " << SDL_GetError() << std::endl;
-    }
-
     if(IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
     {
         std::cout << "SDL_Image Initialized" << std::endl;
@@ -273,8 +329,12 @@ void spacegame::init(const char *title, int xpos, int ypos, int width, int heigh
 
 void spacegame::clean()
 {
-    TTF_CloseFont(GameFont);
-
+    //for (int i = 0; i < ( sizeof ( GameFont ) / sizeof (TTF_Font) ); i++)
+    for(auto i : GameFont)
+    {
+        TTF_CloseFont(i);
+    }
+    
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
@@ -291,4 +351,23 @@ SDL_Texture *spacegame::loadTexture(char *filename)
 	texture = IMG_LoadTexture(renderer, filename);
 
 	return texture;
+}
+
+void spacegame::loadFont(int font, char *filename, int size)
+{
+    GameFont[font] = TTF_OpenFont(filename, size);
+    if(GameFont[font])
+    {
+        std::cout << "Loading font: " << GameFont[font] << std::endl;
+    }
+    else
+    {
+        std::cout << "Error Loading Font " << SDL_GetError() << std::endl;
+    }
+}
+
+void viewport::updateViewport()
+{
+    windowHeightHalf = windowHeight * 0.5;
+    windowWidthHalf = windowWidth * .05;
 }

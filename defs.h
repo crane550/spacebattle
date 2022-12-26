@@ -1,20 +1,14 @@
 #define WINDOW_WIDTH 1024 
 #define WINDOW_HEIGHT 768
 
-#define NUMSTARS 200
-//#define MAXNUMENEMIES 500
-//#define MAXNUMHEALTHAMMO 5
-#define MAXNUMLASERS 20
-#define MAXNUMEXPLOSIONS 20
-
-// #define MAIN_VIEWPORT_X 763
-// #define MAIN_VIEWPORT_Y 5
-// #define MAIN_VIEWPORT_WIDTH 261
-// #define MAIN_VIEWPORT_HEIGHT 758
+#define NUM_STARS 200
 
 #define MAX_FILE_LEN 24
 
-#define MAX_NUM_ENEMIES 40
+#define MAX_NUM_ENEMIES 50
+#define MAX_NUM_LASERS 20
+#define MAX_NUM_EXPLOSIONS 20
+#define NUM_EXPLOSIONS 5
 
 #define MAIN_VIEWPORT_X 5
 #define MAIN_VIEWPORT_Y 5
@@ -32,31 +26,22 @@
 #define VIEWPORT_SHIFT_SPEED .05f
 #define VIEWPORT_PADDING 20
 
-//Ship Boundries
-// #define MINX_PLAYABLE_AREA 20
-// #define MAXX_PLAYABLE_AREA 620
-// #define MINY_PLAYABLE_AREA 20
-// #define MAXY_PLAYABLE_AREA 460
-
 #define SHIPREST 380
 #define NUDGEAMOUNT 1
 
-//#define MINX_PLAYABLE_AREA 10
-//#define SHIP_VEL_INCREMENT_F 1.8
 #define SHIP_VEL_DECAY 0.997f
-#define SHIP_TURN_DECAY 0.75f
-#define SHIP_IMPULSE_F 1.8f
-#define SHIP_IMPULSE_B 0.8f
-#define SHIP_IMPULSE_L 0.75f
-#define SHIP_IMPULSE_R 0.75f
-#define SHIP_IMPULSE_A 3
+#define SHIP_TURN_DECAY 0.9f
+#define SHIP_IMPULSE_F .08f
+#define SHIP_IMPULSE_B 0.04f
+#define SHIP_IMPULSE_L 0.2f
+#define SHIP_IMPULSE_R 0.2f
+#define SHIP_IMPULSE_A .5
 
 #define SHIP_MAX_VEL 10
 #define SHIP_MAX_TURN_VEL 4
 
 #define SHIP_START_X 0;
 #define SHIP_START_Y 0;
-
 
 #define MINVELX -2
 #define MAXVELX 2
@@ -67,37 +52,18 @@
 #define MINSTARVEL .5
 #define MAXSTARVEL 3
 
-// #define LASERVEL 8
-// #define LASERVELENEMY 5
-// #define LASERVELXDAMPING .7
+#define LASER_VEL 7
+#define LASER_LEN 20
+#define LASER_BUFFER 20
+#define LASER_LIFE 200
 
-// #define LASERCOLOR_R 0
-// #define LASERCOLOR_G 255
-// #define LASERCOLOR_B 0
+#define MAX_CALLSIGN_LEN 16
+#define FRAME_PADDING 22
 
-// #define LASERCOLOR_ENEMY_R 255
-// #define LASERCOLOR_ENEMY_G 0
-// #define LASERCOLOR_ENEMY_B 0
-
-// #define COLDISTANCEX 10
-// #define COLDISTANCEY 10
-// #define COLDISTANCEXHEALTH 15
-// #define COLDISTANCEYHEALTH 15
-
-// #define EXPLOSIONSIZE 20
-// #define EXPLOSIONPARTICLES 10
-// #define EXPLOSIONSPREAD 15
-
-// #define HEALTHAMMOCHANCE 2500
-// #define ENEMYFIRECHANCE 250
-// #define AMMOCHANCE 200
-// #define HEALTHCHANCE 500
-
-// #define HEALTHDECREASEINCREMENT 10
-
-#define frameDelay 16.6667
-#define DEFFONTSIZE 16
-#define RAD_TO_DEG 0.017453
-#define PI 3.14159
+#define frameDelay 16.66667f
+#define DEF_FONT_SIZE 16
+#define RAD_TO_DEG 0.017453f
+#define DEG_TO_RAD 57.29583f
+#define PI 3.14159f
 
 

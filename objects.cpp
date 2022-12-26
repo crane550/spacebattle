@@ -45,6 +45,25 @@ void spaceobject::updatePosition()
 
 }
 
+void spaceobject::simpleUpdatePosition()
+{
+    if(impFB)
+    {
+        velX += (sin(posA * RAD_TO_DEG) * impFB);
+        velY += (cos(posA * RAD_TO_DEG) * impFB);
+        impFB = 0;
+    }
+
+    // Finally, update position
+    posX += velX;
+    posY += velY;
+    posA += velA;
+    
+    if(posA > 360){ posA -= 360; }
+    if(posA < 0){ posA += 360; }
+
+}
+
 void spaceobject::decayVelocity()
 {
     velX *= decXY;
@@ -52,29 +71,29 @@ void spaceobject::decayVelocity()
     velA *= decA;
 }
 
-void spaceobject::nudgeY(float ypos, float inc)
+void spaceobject::clear()
 {
-    // if(y > ypos){y -= inc;}
-    // if(y < ypos){y += inc;}   
+    active = false;
+    posX = 0;
+    posY = 0;
+    posA = 0;
+    velX = 0;
+    velY = 0;
+    velTotal = 0;
+    velA = 0;
+    impFB = 0;
+    impLR = 0;
+    impA = 0;
+    maxVel = 0;
+    maxTurnVel = 0;
+    decA = 0;
+    decXY = 0;
+    impFlevel = 0;
+    impBlevel = 0;
+    impRlevel = 0;
+    impAlevel = 0;
+    life = 0;
+    height = 0;
+    width = 0;
+
 }
-
-// void spaceobject::RandomizeVelX(float minvel, float maxvel)
-// {
-//     velX = Rando(minvel, maxvel)
-// }
-
-// void spaceobject::RandomizeVelY(float maxvel)
-// {
-//     velY = (rand() % 2) + 1;
-// }
-
-// void spaceobject::RandomizePosition(float maxX, float maxY)
-// {
-//     x = Rando(0, maxX);
-//     y = Rando(0, maxY);
-// }
-
-// void spaceobject::RandomizePositionX(float maxX)
-// {
-//     x = Rando(0, maxX);
-// }

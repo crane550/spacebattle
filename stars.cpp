@@ -6,7 +6,7 @@
 #include "engine.h"
 #include "util.h"
 
-extern spaceobject Star[NUMSTARS];
+extern spaceobject Star[NUM_STARS];
 extern spacegame Game;
 extern spaceplayer Player;
 extern spaceobject Ship;
@@ -14,7 +14,7 @@ extern spaceobject Ship;
 
 void InitStars()
 {
-    for(int i = 0; i < NUMSTARS; i++)
+    for(int i = 0; i < NUM_STARS; i++)
     {
         Star[i].posX = getRandom(0, WINDOW_WIDTH);
         Star[i].posY = getRandom(0, WINDOW_HEIGHT);
@@ -26,7 +26,7 @@ void HandleStars()
 {
     if(Player.inMenu)
     {
-        for(int i = 0; i < NUMSTARS; i++)
+        for(int i = 0; i < NUM_STARS; i++)
         {
             //Update the stars position based on Velocity
             Star[i].posY += Star[i].velY;
@@ -36,7 +36,7 @@ void HandleStars()
 
     if(Player.inGame)
     {
-        for(int i = 0; i < NUMSTARS; i++)
+        for(int i = 0; i < NUM_STARS; i++)
         {
             Star[i].posX -= (Ship.velX * STARVELRATIO * Star[i].velY);
             Star[i].posY += (Ship.velY * STARVELRATIO * Star[i].velY);
